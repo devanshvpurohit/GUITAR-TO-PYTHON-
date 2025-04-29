@@ -1,11 +1,11 @@
 import streamlit as st
-from streamlit_webrtc import webrtc_streamer, AudioProcessorBase
+from streamlit_webrtc import webrtc_streamer, AudioProcessorBase, WebRtcMode
 import numpy as np
 import av
 import aubio
 import google.generativeai as genai
 
-# ✅ Hardcoded Gemini API Key
+# ✅ Gemini API Key (Hardcoded)
 API_KEY = "AIzaSyAW_b4mee9l8eP931cqd9xqErHV34f7OEw"
 genai.configure(api_key=API_KEY)
 model = genai.GenerativeModel("models/gemini-1.5-pro-latest")
@@ -20,7 +20,7 @@ note_prompts = {
     "C": "Write a Python program that uses recursion to calculate factorial."
 }
 
-# ✅ Frequency-to-Note Conversion
+# ✅ Frequency to Note Conversion
 def freq_to_note(freq):
     if freq == 0:
         return None
@@ -31,7 +31,7 @@ def freq_to_note(freq):
     note_index = (semitones + 9) % 12
     return note_names[note_index]
 
-# ✅ Audio Processor Class
+# ✅ Audio Processor
 class AudioProcessor(AudioProcessorBase):
     def __init__(self):
         self.pitch_o = aubio.pitch("default", 1024, 512, 44100)
@@ -62,18 +62,18 @@ class AudioProcessor(AudioProcessorBase):
 # ✅ Streamlit UI
 st.set_page_config(page_title="🎸 Guitar-to-Gemini", layout="centered")
 st.title("🎸 Live Guitar-to-Gemini Code Generator")
-st.markdown("Play a single guitar note. This app detects the pitch and generates Python code using Gemini 1.5 Pro.")
+st.markdown("Play a guitar note. This app detects pitch and generates Python code with Gemini 1.5 Pro.")
 
-# ✅ Start Microphone Stream
+# ✅ WebRTC Streamer
 webrtc_streamer(
     key="guitar-code",
-    mode="recvonly",
+    mode=WebRtcMode.RECVONLY,  # ✅ Correct usage of enum
     rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
     media_stream_constraints={"audio": True, "video": False},
     audio_processor_factory=AudioProcessor
 )
 
-# ✅ Output Section
+# ✅ Output
 if "note" in st.session_state:
     st.success(f"🎵 Detected Note: {st.session_state['note']}  ({st.session_state['frequency']:.1f} Hz)")
 
