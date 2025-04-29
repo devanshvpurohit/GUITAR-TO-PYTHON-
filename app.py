@@ -1,5 +1,5 @@
 import streamlit as st
-from streamlit_webrtc import webrtc_streamer, AudioProcessorBase, ClientSettings
+from streamlit_webrtc import webrtc_streamer, AudioProcessorBase
 import numpy as np
 import av
 import aubio
@@ -22,7 +22,8 @@ note_prompts = {
 
 # ✅ Frequency-to-Note Conversion
 def freq_to_note(freq):
-    if freq == 0: return None
+    if freq == 0:
+        return None
     note_names = ['C', 'C#', 'D', 'D#', 'E', 'F',
                   'F#', 'G', 'G#', 'A', 'A#', 'B']
     A4 = 440.0
@@ -30,7 +31,7 @@ def freq_to_note(freq):
     note_index = (semitones + 9) % 12
     return note_names[note_index]
 
-# ✅ Audio Processor for WebRTC
+# ✅ Audio Processor Class
 class AudioProcessor(AudioProcessorBase):
     def __init__(self):
         self.pitch_o = aubio.pitch("default", 1024, 512, 44100)
@@ -59,27 +60,25 @@ class AudioProcessor(AudioProcessorBase):
         return frame
 
 # ✅ Streamlit UI
-st.set_page_config(page_title="🎸 Guitar-to-Gemini (Live)", layout="centered")
-st.title("🎸 Guitar-to-Gemini Code Generator (Live Microphone)")
-st.markdown("Play a note on your guitar. It will detect the note and generate Python code using Gemini 1.5 Pro.")
+st.set_page_config(page_title="🎸 Guitar-to-Gemini", layout="centered")
+st.title("🎸 Live Guitar-to-Gemini Code Generator")
+st.markdown("Play a single guitar note. This app detects the pitch and generates Python code using Gemini 1.5 Pro.")
 
-# ✅ Start WebRTC Streamer
+# ✅ Start Microphone Stream
 webrtc_streamer(
-    key="guitar-stream",
+    key="guitar-code",
     mode="recvonly",
-    client_settings=ClientSettings(
-        media_stream_constraints={"audio": True, "video": False},
-        rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
-    ),
+    rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
+    media_stream_constraints={"audio": True, "video": False},
     audio_processor_factory=AudioProcessor
 )
 
-# ✅ Display Output
+# ✅ Output Section
 if "note" in st.session_state:
-    st.success(f"🎵 Note: {st.session_state['note']}  —  {st.session_state['frequency']:.1f} Hz")
+    st.success(f"🎵 Detected Note: {st.session_state['note']}  ({st.session_state['frequency']:.1f} Hz)")
 
 if "prompt" in st.session_state:
-    st.info(f"🧠 Prompt: {st.session_state['prompt']}")
+    st.info(f"💡 Prompt: {st.session_state['prompt']}")
 
 if "response" in st.session_state:
     st.code(st.session_state["response"], language="python")
