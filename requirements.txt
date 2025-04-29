@@ -1,0 +1,6 @@
+streamlit
+streamlit-webrtc
+numpy
+av
+aubio
+google-generativeai
