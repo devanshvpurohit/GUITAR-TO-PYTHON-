@@ -62,23 +62,27 @@ class AudioProcessor(AudioProcessorBase):
 # ✅ Streamlit UI
 st.set_page_config(page_title="🎸 Guitar-to-Gemini", layout="centered")
 st.title("🎸 Live Guitar-to-Gemini Code Generator")
-st.markdown("Play a guitar note. This app detects pitch and generates Python code with Gemini 1.5 Pro.")
+st.markdown("Play a single guitar string into your microphone. This app detects the note and sends a prompt to Gemini Pro to generate Python code.")
 
-# ✅ WebRTC Streamer
+# ✅ Streamlit output placeholders
+col1, col2 = st.columns(2)
+with col1:
+    st.subheader("🎵 Detected Note")
+    st.info(st.session_state.get("note", "Waiting..."))
+    st.write(f"**Frequency:** {st.session_state.get('frequency', 0):.2f} Hz")
+
+with col2:
+    st.subheader("🧠 Gemini Prompt")
+    st.success(st.session_state.get("prompt", "Waiting for note to map..."))
+
+st.subheader("💻 Python Code Output")
+st.code(st.session_state.get("response", "# Play a note on your guitar to get started..."), language="python")
+
+# ✅ Start WebRTC Streamer
 webrtc_streamer(
     key="guitar-code",
-    mode=WebRtcMode.RECVONLY,  # ✅ Correct usage of enum
+    mode=WebRtcMode.RECVONLY,
     rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
     media_stream_constraints={"audio": True, "video": False},
     audio_processor_factory=AudioProcessor
 )
-
-# ✅ Output
-if "note" in st.session_state:
-    st.success(f"🎵 Detected Note: {st.session_state['note']}  ({st.session_state['frequency']:.1f} Hz)")
-
-if "prompt" in st.session_state:
-    st.info(f"💡 Prompt: {st.session_state['prompt']}")
-
-if "response" in st.session_state:
-    st.code(st.session_state["response"], language="python")
